@@ -1,5 +1,4 @@
 node_modules
 src/config.ts
-src/jobDispatcher.ts
-src/jobWorker.ts
+
 dist
