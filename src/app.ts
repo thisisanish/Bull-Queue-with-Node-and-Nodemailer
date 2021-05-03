@@ -1,21 +1,47 @@
+import express from 'express';
+
+
 import Bull from 'bull'
-import * as nodemailer from 'nodemailer'
+import {createBullBoard } from 'bull-board' // UI
+import {BullAdapter} from 'bull-board/bullAdapter' // UI Adapter
 
-import {pass} from './config'
+import * as jobWorker from './jobWorker'
+import * as jobDispatcher from './jobDispatcher'
 
 
-import jobWorker from './jobWorker'
-import jobDispatcher from './jobDispatcher'
+const app = express()
 
 console.log("💪 READY\n");
 
+// QUEUE
+const sendMailQueue = Bull('sendMail',{
+    redis:{
+        host:"127.0.0.1",
+        port:6379,       
+    }
+})
+
+// ? Need to understand this and modularize it
+const { router, setQueues, replaceQueues } = createBullBoard([
+    new BullAdapter(sendMailQueue),
+  ])
 
 // * Adding a Job
-
-jobDispatcher(5)
-
+// TODO : Better way to code it
 
 
+jobDispatcher.sendMailQueueDispatcher(1)
 // * Consumer
 
 jobWorker
+
+
+// * Visualize
+
+app.use('/visualize',router)
+
+
+app.listen(3000,()=>{
+    console.log("Running");
+    
+})

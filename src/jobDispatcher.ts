@@ -1,10 +1,9 @@
 import Bull from 'bull'
-import * as nodemailer from 'nodemailer'
-import {pass} from './config'
+
 
 console.log("Job Dispatcher is Running")
 
-
+// * Configs
 const sendMailQueue = Bull('sendMail',{
     redis:{
         host:"127.0.0.1",
@@ -12,20 +11,23 @@ const sendMailQueue = Bull('sendMail',{
     }
 })
 
+// * Data
 let data = {
     email:"anish.boardinfinity@gmail.com",   
 }
 
 let options={
-    delay:0,
-    attempts:3
+    attempts:3,
+    // removeOnComplete:true
 }
 
 // -----------------------------------------------------------------------
+// * Queue Dispatching 
 
-export default function(n:Number){
+export const sendMailQueueDispatcher = (n:Number)=>{
     for(let i= 0; i<n; i++){
-        sendMailQueue.add(data,options)
+        
+            sendMailQueue.add('Bull Task',data,options)
     }
 }
 

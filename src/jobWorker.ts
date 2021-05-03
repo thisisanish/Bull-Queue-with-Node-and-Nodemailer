@@ -5,18 +5,26 @@ import {pass} from './config'
 console.log("Job Worker is Running");
 
 
+
+// * Configs
+
 const sendMailQueue = Bull('sendMail',{
     redis:{
         host:"127.0.0.1",
-        port:6379,       
+        port:6379,
+
     }
 })
 // ----------------------------------------------------------------------------------
-export default sendMailQueue.process(async job=>{
+// * Queue Processing 
+
+sendMailQueue.process("Bull Task", async job=>{   
     return await sendMail(job)
 })
 
+// ----------------------------------------------------------------------------------
 // * Actual process logic
+
 function sendMail(job:any){
     let email = job.data.email
 
@@ -25,14 +33,15 @@ function sendMail(job:any){
 
         // ! Uncomment/Comment the Below Code for Producting Different Situations
         
-        if(job.attemptsMade>=2 || job.id%3 ==0 ){
+        
+        if(job.attemptsMade>=5 || job.id%3 ==0 ){
             resolve("Success")
-        }else{
+        }else{            
             reject("REJECTED")
         }
 
         // ! Uncomment/Comment Below Code for sending Actual Mail
-     /*    
+       /*  
         let mailoptions = {
             from:'email.anishagarwal@gmail.com',
             to:email,
@@ -59,20 +68,21 @@ function sendMail(job:any){
                 // reject("Fake Reject... The Job with same ID would again Retry based on Attempts passed")
             }
         })
-             */
-    
+            
+     */
     
     })
 }
 
-
+// ---------------------------------------------------------------------------------
 // * EVENTS
 
 sendMailQueue.on('waiting',(jobId)=>{
     console.log("🕑 ",jobId, "is waiting");  
 })
 sendMailQueue.on('failed',(job,result)=>{
-    console.log("😥 ", job.id, "Failed, Attempting Retry No. ",job.attemptsMade);
+    
+    console.log("😥 ", job.id, "Failed, Attempting Retry No. ",job.attemptsMade,result);
 })
 
 sendMailQueue.on('completed',(job)=>{
